@@ -19,20 +19,18 @@ stages:
   - job: Build
     displayName: 'Build and Push'
     steps:
-    - task: JavaToolInstaller@0
+    - task: Maven@3
       inputs:
-        versionSpec: '8'
-        jdkArchitectureOption: 'x64'
-    - script: |
-        cd users-api
-        ./mvnw clean install
-      displayName: 'Build Java Application'
+        mavenPomFile: 'users-api/pom.xml'
+        goals: 'package'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
     - task: Docker@2
       inputs:
         command: buildAndPush
         repository: users-api
         dockerfile: users-api/Dockerfile
-        containerRegistry: ACR
+        containerRegistry: acr-connection
         tags: |
           $(Build.BuildId)
           latest
@@ -47,10 +45,10 @@ stages:
     - task: Kubernetes@1
       inputs:
         connectionType: 'Kubernetes Service Connection'
-        kubernetesServiceEndpoint: 'dev-aks'
+        kubernetesServiceEndpoint: 'k8s-dev-connection'
         namespace: 'dev'
         command: 'apply'
         arguments: '-f users-api/k8s/dev/deployment.yaml'
         secretType: 'dockerRegistry'
         containerRegistryType: 'Azure Container Registry'
-        dockerRegistryEndpoint: 'ACR' 
+        dockerRegistryEndpoint: 'acr-connection' 

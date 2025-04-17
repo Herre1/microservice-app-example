@@ -34,7 +34,7 @@ stages:
         command: buildAndPush
         repository: auth-api
         dockerfile: auth-api/Dockerfile
-        containerRegistry: ACR
+        containerRegistry: acr-connection
         tags: |
           $(Build.BuildId)
           latest
@@ -49,10 +49,10 @@ stages:
     - task: Kubernetes@1
       inputs:
         connectionType: 'Kubernetes Service Connection'
-        kubernetesServiceEndpoint: 'dev-aks'
+        kubernetesServiceEndpoint: 'k8s-dev-connection'
         namespace: 'dev'
         command: 'apply'
         arguments: '-f auth-api/k8s/dev/deployment.yaml'
         secretType: 'dockerRegistry'
         containerRegistryType: 'Azure Container Registry'
-        dockerRegistryEndpoint: 'ACR' 
+        dockerRegistryEndpoint: 'acr-connection' 
