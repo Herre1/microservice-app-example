@@ -13,10 +13,10 @@ FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/auth-api .
 
-ENV AUTH_API_PORT=8000
+ENV AUTH_API_PORT=8081
 ENV USERS_API_ADDRESS=http://users-api:8083
 ENV JWT_SECRET=PRFT
 
-EXPOSE 8000
+EXPOSE 8081
 
 CMD ["./auth-api"] 
