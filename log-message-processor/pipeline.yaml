@@ -21,7 +21,8 @@ stages:
     steps:
     - task: UsePythonVersion@0
       inputs:
-        versionSpec: '3.6'
+        versionSpec: '3.9'
+        architecture: 'x64'
     - script: |
         cd log-message-processor
         pip3 install -r requirements.txt
