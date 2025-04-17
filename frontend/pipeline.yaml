@@ -21,18 +21,18 @@ stages:
     steps:
     - task: NodeTool@0
       inputs:
-        versionSpec: '14.x'
+        versionSpec: '8.17.0'
     - script: |
         cd frontend
         npm install
         npm run build
-      displayName: 'Build Frontend'
+      displayName: 'Build Node.js Application'
     - task: Docker@2
       inputs:
         command: buildAndPush
         repository: frontend
         dockerfile: frontend/Dockerfile
-        containerRegistry: acr-connection
+        containerRegistry: ACR
         tags: |
           $(Build.BuildId)
           latest
@@ -47,10 +47,10 @@ stages:
     - task: Kubernetes@1
       inputs:
         connectionType: 'Kubernetes Service Connection'
-        kubernetesServiceEndpoint: 'k8s-dev-connection'
+        kubernetesServiceEndpoint: 'dev-aks'
         namespace: 'dev'
         command: 'apply'
         arguments: '-f frontend/k8s/dev/deployment.yaml'
         secretType: 'dockerRegistry'
         containerRegistryType: 'Azure Container Registry'
-        dockerRegistryEndpoint: 'acr-connection' 
+        dockerRegistryEndpoint: 'ACR' 

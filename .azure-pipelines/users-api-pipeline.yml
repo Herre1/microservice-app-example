@@ -1,0 +1,51 @@
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - users-api/*
+
+variables:
+- group: dev-variables
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+- stage: Build
+  jobs:
+  - job: BuildAndTest
+    steps:
+    - task: Maven@3
+      inputs:
+        mavenPomFile: 'users-api/pom.xml'
+        goals: 'clean package'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'ACR'
+        repository: 'users-api'
+        command: 'buildAndPush'
+        Dockerfile: 'users-api/Dockerfile'
+        tags: |
+          $(Build.BuildId)
+          latest
+
+- stage: Deploy
+  jobs:
+  - deployment: Deploy
+    environment: 'dev'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: KubernetesManifest@0
+            inputs:
+              action: 'deploy'
+              kubernetesServiceConnection: 'dev-aks'
+              namespace: 'dev'
+              manifests: 'users-api/k8s/dev/*.yaml'
+              containers: '$(ACR_NAME).azurecr.io/users-api:$(Build.BuildId)' 

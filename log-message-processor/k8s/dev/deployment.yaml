@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: log-message-processor
-        image: $(ACR_NAME).azurecr.io/log-message-processor:$(Build.BuildId)
+        image: tuacr.azurecr.io/log-message-processor:latest
         ports:
         - containerPort: 8083
         env:

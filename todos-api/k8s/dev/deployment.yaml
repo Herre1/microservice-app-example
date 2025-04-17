@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: todos-api
-        image: $(ACR_NAME).azurecr.io/todos-api:$(Build.BuildId)
+        image: tuacr.azurecr.io/todos-api:latest
         ports:
         - containerPort: 8082
         env:

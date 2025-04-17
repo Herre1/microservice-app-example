@@ -1,13 +1,22 @@
-FROM node:14-alpine
+FROM golang:1.18.2-alpine as builder
 
 WORKDIR /app
-
-COPY package*.json ./
-
-RUN npm install
-
 COPY . .
 
-EXPOSE 8081
+RUN export GO111MODULE=on && \
+    go mod init github.com/bortizf/microservice-app-example/tree/master/auth-api && \
+    go mod tidy && \
+    go build -o auth-api
 
-CMD ["npm", "start"] 
+FROM alpine:latest
+
+WORKDIR /app
+COPY --from=builder /app/auth-api .
+
+ENV AUTH_API_PORT=8000
+ENV USERS_API_ADDRESS=http://users-api:8083
+ENV JWT_SECRET=PRFT
+
+EXPOSE 8000
+
+CMD ["./auth-api"] 

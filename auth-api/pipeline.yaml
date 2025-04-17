@@ -19,20 +19,22 @@ stages:
   - job: Build
     displayName: 'Build and Push'
     steps:
-    - task: NodeTool@0
+    - task: GoTool@0
       inputs:
-        versionSpec: '14.x'
+        version: '1.18.2'
     - script: |
+        export GO111MODULE=on
         cd auth-api
-        npm install
-        npm run build
-      displayName: 'Build Auth API'
+        go mod init github.com/bortizf/microservice-app-example/tree/master/auth-api
+        go mod tidy
+        go build
+      displayName: 'Build Go Application'
     - task: Docker@2
       inputs:
         command: buildAndPush
         repository: auth-api
         dockerfile: auth-api/Dockerfile
-        containerRegistry: acr-connection
+        containerRegistry: ACR
         tags: |
           $(Build.BuildId)
           latest
@@ -47,10 +49,10 @@ stages:
     - task: Kubernetes@1
       inputs:
         connectionType: 'Kubernetes Service Connection'
-        kubernetesServiceEndpoint: 'k8s-dev-connection'
+        kubernetesServiceEndpoint: 'dev-aks'
         namespace: 'dev'
         command: 'apply'
         arguments: '-f auth-api/k8s/dev/deployment.yaml'
         secretType: 'dockerRegistry'
         containerRegistryType: 'Azure Container Registry'
-        dockerRegistryEndpoint: 'acr-connection' 
+        dockerRegistryEndpoint: 'ACR' 

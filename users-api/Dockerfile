@@ -1,13 +1,15 @@
-FROM node:14-alpine
-
+FROM maven:3.8.4-openjdk-8-slim AS build
 WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-COPY package*.json ./
+FROM openjdk:8-jre-slim
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 
-RUN npm install
+ENV JWT_SECRET=PRFT
+ENV SERVER_PORT=8083
 
-COPY . .
-
-EXPOSE 8080
-
-CMD ["npm", "start"] 
+EXPOSE 8083
+ENTRYPOINT ["java", "-jar", "app.jar"] 

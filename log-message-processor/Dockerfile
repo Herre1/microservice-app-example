@@ -1,13 +1,12 @@
-FROM node:14-alpine
+FROM python:3.6-alpine
 
 WORKDIR /app
-
-COPY package*.json ./
-
-RUN npm install
-
+COPY requirements.txt .
+RUN pip3 install -r requirements.txt
 COPY . .
 
-EXPOSE 8083
+ENV REDIS_HOST=redis
+ENV REDIS_PORT=6379
+ENV REDIS_CHANNEL=log_channel
 
-CMD ["npm", "start"] 
+CMD ["python3", "main.py"] 

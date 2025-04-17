@@ -21,18 +21,17 @@ stages:
     steps:
     - task: NodeTool@0
       inputs:
-        versionSpec: '14.x'
+        versionSpec: '8.17.0'
     - script: |
         cd todos-api
         npm install
-        npm run build
-      displayName: 'Build TODOs API'
+      displayName: 'Build Node.js Application'
     - task: Docker@2
       inputs:
         command: buildAndPush
         repository: todos-api
         dockerfile: todos-api/Dockerfile
-        containerRegistry: acr-connection
+        containerRegistry: ACR
         tags: |
           $(Build.BuildId)
           latest
@@ -47,10 +46,10 @@ stages:
     - task: Kubernetes@1
       inputs:
         connectionType: 'Kubernetes Service Connection'
-        kubernetesServiceEndpoint: 'k8s-dev-connection'
+        kubernetesServiceEndpoint: 'dev-aks'
         namespace: 'dev'
         command: 'apply'
         arguments: '-f todos-api/k8s/dev/deployment.yaml'
         secretType: 'dockerRegistry'
         containerRegistryType: 'Azure Container Registry'
-        dockerRegistryEndpoint: 'acr-connection' 
+        dockerRegistryEndpoint: 'ACR' 
