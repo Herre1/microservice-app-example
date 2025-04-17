@@ -4,7 +4,7 @@ WORKDIR /app
 COPY . .
 
 RUN export GO111MODULE=on && \
-    go mod init github.com/bortizf/microservice-app-example/tree/master/auth-api && \
+    go mod init github.com/Herre1/microservice-app-example/tree/master/auth-api && \
     go mod tidy && \
     go build -o auth-api
 
