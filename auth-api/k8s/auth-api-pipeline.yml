@@ -1,0 +1,62 @@
+trigger:
+  branches:
+    include:
+    - develop
+    - main
+  paths:
+    include:
+    - auth-api/*
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: dev-variables
+  - name: dockerRegistry
+    value: '$(ACR_NAME).azurecr.io'
+  - name: imageName
+    value: 'auth-api'
+  - name: tag
+    value: '$(Build.BuildId)'
+
+stages:
+- stage: Build
+  displayName: 'Build and Test'
+  jobs:
+  - job: Build
+    steps:
+    - task: GoTool@0
+      inputs:
+        version: '1.19'
+    
+    - script: |
+        cd auth-api
+        go test ./...
+        go build -o auth-api
+      displayName: 'Build and Test Go Application'
+    
+    - task: Docker@2
+      inputs:
+        command: 'build'
+        repository: '$(imageName)'
+        dockerfile: 'auth-api/Dockerfile'
+        tags: '$(tag)'
+        containerRegistry: '$(dockerRegistry)'
+
+- stage: DeployDev
+  displayName: 'Deploy to Development'
+  condition: succeeded()
+  jobs:
+  - deployment: Deploy
+    environment: 'Development'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: KubernetesManifest@0
+            inputs:
+              action: 'deploy'
+              kubernetesServiceConnection: 'k8s-dev-connection'
+              namespace: 'dev'
+              manifests: 'auth-api/k8s/dev/*.yaml'
+              imagePullSecrets: 'acr-secret'

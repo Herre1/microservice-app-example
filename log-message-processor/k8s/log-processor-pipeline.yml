@@ -1,0 +1,62 @@
+trigger:
+  branches:
+    include:
+    - develop
+    - main
+  paths:
+    include:
+    - log-message-processor/*
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: dev-variables
+  - name: dockerRegistry
+    value: '$(ACR_NAME).azurecr.io'
+  - name: imageName
+    value: 'log-processor'
+  - name: tag
+    value: '$(Build.BuildId)'
+
+stages:
+- stage: Build
+  displayName: 'Build and Test'
+  jobs:
+  - job: Build
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.9'
+    
+    - script: |
+        cd log-message-processor
+        pip install -r requirements.txt
+        python -m pytest
+      displayName: 'Build and Test Python Application'
+    
+    - task: Docker@2
+      inputs:
+        command: 'build'
+        repository: '$(imageName)'
+        dockerfile: 'log-message-processor/Dockerfile'
+        tags: '$(tag)'
+        containerRegistry: '$(dockerRegistry)'
+
+- stage: DeployDev
+  displayName: 'Deploy to Development'
+  condition: succeeded()
+  jobs:
+  - deployment: Deploy
+    environment: 'Development'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: KubernetesManifest@0
+            inputs:
+              action: 'deploy'
+              kubernetesServiceConnection: 'k8s-dev-connection'
+              namespace: 'dev'
+              manifests: 'log-message-processor/k8s/dev/*.yaml'
+              imagePullSecrets: 'acr-secret'

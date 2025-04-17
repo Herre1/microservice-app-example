@@ -1,0 +1,65 @@
+# frontend-pipeline.yml
+trigger:
+  branches:
+    include:
+    - develop
+    - main
+  paths:
+    include:
+    - frontend/*
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: dev-variables
+  - name: dockerRegistry
+    value: '$(ACR_NAME).azurecr.io'
+  - name: imageName
+    value: 'frontend'
+  - name: tag
+    value: '$(Build.BuildId)'
+
+stages:
+- stage: Build
+  displayName: 'Build and Test'
+  jobs:
+  - job: Build
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '14.x'
+    
+    - script: |
+        cd frontend
+        npm install
+        npm run lint
+        npm test
+        npm run build
+      displayName: 'Build and Test Vue Application'
+    
+    - task: Docker@2
+      inputs:
+        command: 'build'
+        repository: '$(imageName)'
+        dockerfile: 'frontend/Dockerfile'
+        tags: '$(tag)'
+        containerRegistry: '$(dockerRegistry)'
+
+- stage: DeployDev
+  displayName: 'Deploy to Development'
+  condition: succeeded()
+  jobs:
+  - deployment: Deploy
+    environment: 'Development'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: KubernetesManifest@0
+            inputs:
+              action: 'deploy'
+              kubernetesServiceConnection: 'k8s-dev-connection'
+              namespace: 'dev'
+              manifests: 'frontend/k8s/dev/*.yaml'
+              imagePullSecrets: 'acr-secret'
