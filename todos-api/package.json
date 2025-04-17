@@ -4,7 +4,8 @@
   "description": "API for Todos in my little example app",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "build": "echo 'No build step required for Node.js application'"
   },
   "author": "elgris <iddqd07@yandex.ru>",
   "license": "MIT",
@@ -20,7 +21,7 @@
     "zipkin-transport-http": "^0.22.0",
     "axios": "^0.21.1",
     "axios-retry": "^3.1.9",
-    "circuit-breaker-js": "^0.0.6"
+    "opossum": "^8.1.1"
   },
   "devDependencies": {
     "nodemon": "^1.11.0"
