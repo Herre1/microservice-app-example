@@ -25,9 +25,10 @@ stages:
       displayName: 'Install Go'
 
     - script: |
-        # Diagnóstico: Verifica que auth-api existe
         echo "Verificando archivos en el workspace..."
-        ls -la $(System.DefaultWorkingDirectory)
+        ls -la
+        echo "Contenido de auth-api:"
+        ls -la auth-api
 
         # Configurar GOPATH y estructura de directorios
         export GOPATH=/home/vsts/go
@@ -36,7 +37,7 @@ stages:
         mkdir -p $GOPATH/src/github.com/microservice-app-example/auth-api
 
         # Copiar código al GOPATH correcto
-        cp -r $(System.DefaultWorkingDirectory)/auth-api/* $GOPATH/src/github.com/microservice-app-example/auth-api/
+        cp -r auth-api/* $GOPATH/src/github.com/microservice-app-example/auth-api/
 
         # Instalar dep
         curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
@@ -47,8 +48,8 @@ stages:
         dep ensure
         go build -o auth-api
 
-        # Copiar el binario de vuelta
-        cp auth-api $(System.DefaultWorkingDirectory)/auth-api/
+        # Copiar el binario de vuelta a la carpeta original
+        cp $GOPATH/src/github.com/microservice-app-example/auth-api/auth-api $(System.DefaultWorkingDirectory)/auth-api/
       displayName: 'Build Go App'
 
     - task: Docker@2
