@@ -25,18 +25,26 @@ stages:
       displayName: 'Install Go'
 
     - script: |
-        # Crear directorio GOBIN
-        mkdir -p /home/vsts/go/bin
-        export GOBIN=/home/vsts/go/bin
-        export PATH=$PATH:$GOBIN
+        # Configurar GOPATH y estructura de directorios
+        export GOPATH=/home/vsts/go
+        export GOBIN=$GOPATH/bin
+        mkdir -p $GOBIN
+        mkdir -p $GOPATH/src/github.com/microservice-app-example/auth-api
+        
+        # Copiar código al GOPATH correcto
+        cp -r auth-api/* $GOPATH/src/github.com/microservice-app-example/auth-api/
         
         # Instalar dep
         curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+        export PATH=$PATH:$GOBIN
         
         # Build
-        cd auth-api
+        cd $GOPATH/src/github.com/microservice-app-example/auth-api
         dep ensure
-        go build
+        go build -o auth-api
+        
+        # Copiar el binario de vuelta
+        cp auth-api /home/vsts/work/1/s/auth-api/
       displayName: 'Build Go App'
 
     - task: Docker@2
