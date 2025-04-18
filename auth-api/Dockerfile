@@ -3,14 +3,17 @@ FROM golang:1.18-alpine AS builder
 
 WORKDIR /app
 
-# Instalar dep
+# Instalar git y curl (necesarios para dep)
 RUN apk add --no-cache git curl
+
+# Instalar dep
 RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
+# Copiar archivos del proyecto
 COPY . .
 
-# Usar dep en lugar de go mod
-RUN dep ensure
+# Descargar dependencias y construir
+RUN dep ensure -v
 RUN go build -o auth-api
 
 # Final stage
