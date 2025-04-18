@@ -32,6 +32,13 @@ module.exports = {
         target: process.env.AUTH_API_ADDRESS || 'http://127.0.0.1:8081',
         secure: false
       },
+      '/api/auth': {
+        target: process.env.AUTH_API_ADDRESS || 'http://127.0.0.1:8081',
+        pathRewrite: {
+          '^/api/auth': ''
+        },
+        secure: false
+      },
       '/todos': {
         target: process.env.TODOS_API_ADDRESS || 'http://127.0.0.1:8082',
         secure: false
