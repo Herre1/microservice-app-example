@@ -19,11 +19,15 @@ spec:
         ports:
         - containerPort: 8081
         env:
+        - name: AUTH_API_PORT
+          value: "8081"
         - name: JWT_SECRET
           valueFrom:
             secretKeyRef:
               name: auth-secrets
               key: jwt-secret
+        - name: USERS_API_ADDRESS
+          value: "http://users-api:8080"
 ---
 apiVersion: v1
 kind: Service
