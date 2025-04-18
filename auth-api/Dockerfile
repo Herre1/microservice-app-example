@@ -1,8 +1,10 @@
 # Build stage
 FROM golang:1.18 AS builder
 
-# Configurar el GOPATH correctamente
+# Configurar el GOPATH y deshabilitar módulos de Go
 ENV GOPATH /go
+ENV GO111MODULE off
+
 WORKDIR /go/src/github.com/microservice-app-example/auth-api
 
 # Instalar dep
@@ -13,7 +15,7 @@ COPY . .
 
 # Descargar dependencias y construir
 RUN dep ensure -v
-RUN go build -o auth-api
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o auth-api
 
 # Final stage
 FROM debian:bullseye-slim
