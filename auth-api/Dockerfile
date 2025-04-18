@@ -1,24 +1,26 @@
+# Build stage
 FROM golang:1.18 AS builder
 
-WORKDIR /app
+# Configurar el GOPATH correctamente
+ENV GOPATH /go
+WORKDIR /go/src/github.com/microservice-app-example/auth-api
 
-RUN apt-get update && apt-get install -y git curl
+# Instalar dep
+RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
-RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh -o install.sh && \
-    chmod +x install.sh && \
-    ./install.sh && \
-    mv /go/bin/dep /usr/local/bin/dep
-
+# Copiar los archivos del proyecto
 COPY . .
 
+# Descargar dependencias y construir
 RUN dep ensure -v
 RUN go build -o auth-api
 
+# Final stage
 FROM debian:bullseye-slim
 
 WORKDIR /root/
 
-COPY --from=builder /app/auth-api .
+COPY --from=builder /go/src/github.com/microservice-app-example/auth-api/auth-api .
 
 EXPOSE 8081
 
