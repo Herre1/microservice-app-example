@@ -1,23 +1,20 @@
-# Build stage
-FROM golang:1.18-alpine AS builder
+FROM golang:1.18 AS builder
 
 WORKDIR /app
 
-# Instalar git y curl (necesarios para dep)
-RUN apk add --no-cache git curl
+RUN apt-get update && apt-get install -y git curl
 
-# Instalar dep
-RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh -o install.sh && \
+    chmod +x install.sh && \
+    ./install.sh && \
+    mv /go/bin/dep /usr/local/bin/dep
 
-# Copiar archivos del proyecto
 COPY . .
 
-# Descargar dependencias y construir
 RUN dep ensure -v
 RUN go build -o auth-api
 
-# Final stage
-FROM alpine:latest
+FROM debian:bullseye-slim
 
 WORKDIR /root/
 
