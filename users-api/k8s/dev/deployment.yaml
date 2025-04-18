@@ -15,14 +15,16 @@ spec:
     spec:
       containers:
       - name: users-api
-        image: tuacr.azurecr.io/users-api:latest
+        image: tuacr.azurecr.io/users-api:rebuild
+        imagePullPolicy: Always
         ports:
-        - containerPort: 8080
+        - containerPort: 8083
         env:
-        - name: REDIS_HOST
-          value: "redis"
-        - name: REDIS_PORT
-          value: "6379"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: jwt-secret
 ---
 apiVersion: v1
 kind: Service
@@ -33,6 +35,6 @@ spec:
   type: ClusterIP
   ports:
   - port: 8080
-    targetPort: 8080
+    targetPort: 8083
   selector:
-    app: users-api 
+    app: users-api

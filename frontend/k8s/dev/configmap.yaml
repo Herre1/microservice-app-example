@@ -4,7 +4,7 @@ metadata:
   name: frontend-nginx-config
   namespace: dev
 data:
-  default.conf: |
+  custom.conf: |
     server {
         listen 80;
         server_name localhost;
