@@ -25,8 +25,16 @@ stages:
       displayName: 'Install Go'
 
     - script: |
-        cd auth-api
+        # Crear directorio GOBIN
+        mkdir -p /home/vsts/go/bin
+        export GOBIN=/home/vsts/go/bin
+        export PATH=$PATH:$GOBIN
+        
+        # Instalar dep
         curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+        
+        # Build
+        cd auth-api
         dep ensure
         go build
       displayName: 'Build Go App'
