@@ -1,29 +1,25 @@
-# Etapa de construcción
+# Build stage
 FROM golang:1.18-alpine AS builder
 
 WORKDIR /app
 
-# Copiamos los archivos del proyecto
+# Instalar dep
+RUN apk add --no-cache git curl
+RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+
 COPY . .
 
-# Activamos el modo módulo de Go y resolvemos dependencias
-RUN go mod tidy && go build -o auth-api
+# Usar dep en lugar de go mod
+RUN dep ensure
+RUN go build -o auth-api
 
-# Etapa final: imagen liviana para producción
+# Final stage
 FROM alpine:latest
 
-WORKDIR /app
+WORKDIR /root/
 
-# Copiamos el binario desde la etapa de build
 COPY --from=builder /app/auth-api .
 
-# Variables de entorno
-ENV AUTH_API_PORT=8081
-ENV USERS_API_ADDRESS=http://users-api:8083
-ENV JWT_SECRET=PRFT
-
-# Exponemos el puerto configurable
 EXPOSE 8081
 
-# Ejecutamos el servicio (puede ser sobreescrito con docker run)
-CMD ["./auth-api"] 
+CMD ["./auth-api"]
