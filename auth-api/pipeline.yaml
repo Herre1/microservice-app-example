@@ -25,26 +25,31 @@ stages:
       displayName: 'Install Go'
 
     - script: |
-        # Configurar GOPATH
+        # Configurar GOPATH y crear directorios necesarios
         export GOPATH=/home/vsts/go
         export GOBIN=$GOPATH/bin
+        mkdir -p $GOBIN
         export PATH=$PATH:$GOBIN
-        
-        # Crear estructura de directorios
-        mkdir -p $GOPATH/src/auth-api
-        
-        # Copiar código
-        cp -r auth-api/* $GOPATH/src/auth-api/
-        
-        # Instalar dep
+
+        # Instalar dep primero
         curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
         
-        # Build
+        # Verificar que dep se instaló
+        which dep
+        dep version
+
+        # Crear estructura de directorios y copiar código
+        mkdir -p $GOPATH/src/auth-api
+        cp -r auth-api/* $GOPATH/src/auth-api/
+        
+        # Entrar al directorio y ejecutar dep ensure
         cd $GOPATH/src/auth-api
         dep ensure -v
-        GO111MODULE=off go build -o auth-api
         
-        # Copiar binario de vuelta
+        # Construir la aplicación
+        GO111MODULE=off go build -v
+        
+        # Copiar el binario de vuelta
         cp auth-api /home/vsts/work/1/s/auth-api/
       displayName: 'Build Go App'
 
